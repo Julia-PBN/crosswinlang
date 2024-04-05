@@ -1,3 +1,7 @@
+make tests
+
+implement key type
+
 make for more examples
 
 the syntax.md todo

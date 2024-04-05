@@ -12,13 +12,13 @@ Also I thought of [this meme](https://xkcd.com/927/) when someone asked me if I'
 
 # What cwl is not
 
-Cwl is *not* a programming language, and it's not a compilator from other format to .cwl, although it'd be cool, I think it would be better to have different tools for that.
+Cwl is *not* a programming language, and it's not a compilator from other format to .cwf (cross lang format), although it'd be cool, I think it would be better to have different tools for that.
 
 # How to learn cwl
 
 Look at `syntax.md` and at the files in `examples/`
 
-cwl output on the standard output, and follows the syntax `./cwl (your cwl file) (the format you want)`.
+cwl output on the standard output, and follows the syntax `./cwl (your cwf file) (the format you want)`.
 
 # How to use it
 
@@ -30,4 +30,4 @@ and then, you do:
 zig build
 ```
 
-The output will be in the directory `./zig-out/bin/`
+The output executable is `./zig-out/bin/cwl` (or `/zig-out/bin/cwl.exe` if you are on windows)
