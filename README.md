@@ -14,6 +14,20 @@ Also I thought of [this meme](https://xkcd.com/927/) when someone asked me if I'
 
 Cwl is *not* a programming language, and it's not a compilator from other format to .cwl, although it'd be cool, I think it would be better to have different tools for that.
 
-# How to learn cwl syntax
+# How to learn cwl
 
 Look at `syntax.md` and at the files in `examples/`
+
+cwl output on the standard output, and follows the syntax `./cwl (your cwl file) (the format you want)`.
+
+# How to use it
+
+You need a zig compiler, it's quite easy to install (and quite small) so it shouldn't be a problem: https://ziglang.org/learn/getting-started/
+
+and then, you do:
+
+```sh
+zig build
+```
+
+The output will be in the directory `./zig-out/bin/`
