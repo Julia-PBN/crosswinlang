@@ -1,0 +1,13 @@
+(mode default
+  (set term alacritty)
+  (bind Enter (exec (cmd (val term))))
+	(bind e (exec (cmd alacritty &)))
+	(exec (cmd echo))
+)
+
+(exec (cmd ls -lh))
+
+(exec (and 
+  (pipe (cmd echo /dev/unrandom) 
+        (pipe (cmd head -n 10) (cmd cat))) 
+  (cmd echo "that was \"unlikely\"  ")))
