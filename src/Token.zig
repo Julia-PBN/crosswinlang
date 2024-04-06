@@ -1,22 +1,7 @@
 const Position = @import("misc.zig").Position;
 const activeTag = @import("std").meta.activeTag;
 
-pub const TokenTypeEnum = enum {
-    BIND,
-    MODE,
-    EXEC,
-    SET,
-    VAL,
-    PIPE,
-    AND,
-    CMD,
-    LEFT_PAR,
-    RIGHT_PAR,
-    VAR,
-    EOF,
-};
-
-pub const TokenType = union(TokenTypeEnum) {
+pub const TokenType = union(enum) {
     BIND,
     MODE,
     EXEC,
@@ -31,6 +16,7 @@ pub const TokenType = union(TokenTypeEnum) {
     EOF,
 };
 
+const TokenTypeEnum = @typeInfo(TokenType).Union.tag_type.?;
 pub const Token = struct {
     const Self = @This();
     position: Position,
