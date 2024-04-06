@@ -6,6 +6,8 @@ const Lexer = @import("Lexer.zig");
 const Expr = @import("Expr.zig").Expr;
 const Command = @import("Expr.zig").Command;
 const CommandAtom = @import("Expr.zig").CommandAtom;
+const Key = @import("Expr.zig").Key;
+const KeyAtom = @import("Expr.zig").KeyAtom;
 
 const Self = @This();
 
@@ -72,11 +74,46 @@ fn parse_expr(self: *Self) Expr {
 
 fn parse_bind(self: *Self) Expr {
     _ = self.lexer.next_assert(.BIND);
-    const to = self.lexer.next_assert(.VAR).type.VAR;
+    const to = self.parse_key();
     const value = self.allocator.create(Expr) catch unreachable;
     value.* = self.parse_expr();
 
     return .{ .BIND = .{ .to = to, .value = value } };
+}
+
+fn parse_key(self: *Self) Key {
+    if (self.lexer.top().tag() == .VAR) {
+        return .{ .ATOM = .{ .LITTERAL = self.lexer.next_assert(.VAR).type.VAR } };
+    }
+    _ = self.lexer.next_assert(.LEFT_PAR);
+    if (self.lexer.top().tag() == .AND) {
+        return self.parse_and_key();
+    }
+    _ = self.lexer.next_assert(.VAL);
+    const v = self.lexer.next_assert(.VAR).type.VAR;
+    _ = self.lexer.next_assert(.RIGHT_PAR);
+    return .{ .ATOM = .{ .VAL = v } };
+}
+
+fn parse_and_key(self: *Self) Key {
+    _ = self.lexer.next_assert(.AND);
+    var list = std.ArrayList(KeyAtom).init(self.allocator);
+    while (self.lexer.top().tag() != .EOF and self.lexer.top().tag() != .RIGHT_PAR) {
+        list.append(self.parse_key_atom()) catch unreachable;
+    }
+    _ = self.lexer.next_assert(.RIGHT_PAR);
+    return .{ .AND = list };
+}
+
+fn parse_key_atom(self: *Self) KeyAtom {
+    if (self.lexer.top().tag() == .VAR) {
+        return .{ .LITTERAL = self.lexer.next_assert(.VAR).type.VAR };
+    }
+    _ = self.lexer.next_assert(.LEFT_PAR);
+    _ = self.lexer.next_assert(.VAL);
+    const v = self.lexer.next_assert(.VAR).type.VAR;
+    _ = self.lexer.next_assert(.RIGHT_PAR);
+    return .{ .VAL = v };
 }
 
 fn parse_mode(self: *Self) Expr {

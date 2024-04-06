@@ -1,6 +1,7 @@
 (mode default
   (set term alacritty)
-  (bind Enter (exec (cmd (val term))))
+  (set mod Alt)
+  (bind (and (val mod) Enter) (exec (cmd (val term))))
 	(bind e (exec (cmd alacritty &)))
 	(exec (cmd echo))
 )

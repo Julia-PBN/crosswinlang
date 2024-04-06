@@ -1,4 +1,4 @@
-# the .cf file format
+# the .cwf file format
 
 support for `mode`, `bind`, `set` and `exec`
 

@@ -5,9 +5,50 @@ const Format = @import("misc.zig").Format;
 
 const activeTag = std.meta.activeTag;
 
-pub const CommandAtomEnum = enum {
-    LITTERAL,
-    VAL,
+pub const KeyAtom = union(enum) {
+    const Self = @This();
+
+    LITTERAL: []const u8,
+    VAL: []const u8,
+
+    pub fn dump(self: Self, format: Format) void {
+        _ = format;
+        switch (activeTag(self)) {
+            .LITTERAL => {
+                std.debug.print("{s}", .{self.LITTERAL});
+            },
+            .VAL => {
+                std.debug.print("${s}", .{self.VAL});
+            },
+        }
+    }
+};
+
+pub const Key = union(enum) {
+    const Self = @This();
+    ATOM: KeyAtom,
+    AND: ArrayList(KeyAtom),
+
+    pub fn dump(self: Self, format: Format) void {
+        switch (activeTag(self)) {
+            .ATOM => {
+                self.ATOM.dump(format);
+            },
+            .AND => {
+                switch (format) {
+                    .I3, .SWAY, .HYPERLAND => {
+                        const v = self.AND.items;
+                        const len = v.len;
+                        for (0..len - 1) |i| {
+                            v[i].dump(format);
+                            std.debug.print("+", .{});
+                        }
+                        v[len - 1].dump(format);
+                    },
+                }
+            },
+        }
+    }
 };
 
 pub const CommandAtom = union(enum) {
@@ -29,12 +70,6 @@ pub const CommandAtom = union(enum) {
             },
         }
     }
-};
-
-pub const CommandEnum = enum {
-    CMD,
-    PIPE,
-    AND,
 };
 
 pub const Command = union(enum) {
@@ -85,20 +120,11 @@ pub const Command = union(enum) {
     }
 };
 
-pub const ExprTypeEnum = enum {
-    BIND,
-    MODE,
-    EXEC,
-    SET,
-    VAL,
-    BLOCK,
-};
-
-pub const Expr = union(ExprTypeEnum) {
+pub const Expr = union(enum) {
     const Self = @This();
 
     BIND: struct {
-        to: []const u8,
+        to: Key,
         value: *Expr,
     },
     MODE: struct {
@@ -110,7 +136,6 @@ pub const Expr = union(ExprTypeEnum) {
         to: []const u8,
         val: []const u8,
     },
-    VAL: []const u8,
     BLOCK: ArrayList(Expr),
 
     // TODO! take a writer to be able to buffer it
@@ -126,11 +151,15 @@ pub const Expr = union(ExprTypeEnum) {
                 }
                 switch (format) {
                     .I3, .SWAY => {
-                        std.debug.print("bindsym {s} ", .{self.BIND.to});
+                        std.debug.print("bindsym ", .{});
+                        self.BIND.to.dump(format);
+                        std.debug.print(" ", .{});
                         self.BIND.value._dump(format, 0);
                     },
                     .HYPERLAND => {
-                        std.debug.print("bind = {s}, ", .{self.BIND.to});
+                        std.debug.print("bind = ", .{});
+                        self.BIND.to.dump(format);
+                        std.debug.print(", ", .{});
                         self.BIND.value._dump(format, 0);
                     },
                 }
@@ -188,17 +217,6 @@ pub const Expr = union(ExprTypeEnum) {
                     },
                     .HYPERLAND => {
                         std.debug.print("${s} = {s}\n", .{ self.SET.to, self.SET.val });
-                    },
-                }
-            },
-
-            .VAL => {
-                for (0..identation) |_| {
-                    std.debug.print("\t", .{});
-                }
-                switch (format) {
-                    .I3, .SWAY, .HYPERLAND => {
-                        std.debug.print("${s}", .{self.VAL});
                     },
                 }
             },
