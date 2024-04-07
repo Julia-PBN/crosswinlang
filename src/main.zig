@@ -39,5 +39,10 @@ pub fn main() !void {
     }
 
     var parser = Parser.init(args[1], allocator);
-    parser.parse().dump(format);
+
+    const stdout_file = std.io.getStdOut().writer();
+    var bw = std.io.bufferedWriter(stdout_file);
+    const stdout = bw.writer();
+    parser.parse().dump(stdout, format);
+    try bw.flush();
 }

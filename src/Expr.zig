@@ -1,5 +1,6 @@
 const std = @import("std");
 const ArrayList = std.ArrayList;
+const Writer = std.io.Writer;
 
 const Format = @import("misc.zig").Format;
 
@@ -11,14 +12,14 @@ pub const KeyAtom = union(enum) {
     LITTERAL: []const u8,
     VAL: []const u8,
 
-    pub fn dump(self: Self, format: Format) void {
+    pub fn dump(self: Self, w: anytype, format: Format) void {
         _ = format;
         switch (activeTag(self)) {
             .LITTERAL => {
-                std.debug.print("{s}", .{self.LITTERAL});
+                w.print("{s}", .{self.LITTERAL}) catch unreachable;
             },
             .VAL => {
-                std.debug.print("${s}", .{self.VAL});
+                w.print("${s}", .{self.VAL}) catch unreachable;
             },
         }
     }
@@ -29,10 +30,10 @@ pub const Key = union(enum) {
     ATOM: KeyAtom,
     AND: ArrayList(KeyAtom),
 
-    pub fn dump(self: Self, format: Format) void {
+    pub fn dump(self: Self, w: anytype, format: Format) void {
         switch (activeTag(self)) {
             .ATOM => {
-                self.ATOM.dump(format);
+                self.ATOM.dump(w, format);
             },
             .AND => {
                 switch (format) {
@@ -40,10 +41,10 @@ pub const Key = union(enum) {
                         const v = self.AND.items;
                         const len = v.len;
                         for (0..len - 1) |i| {
-                            v[i].dump(format);
-                            std.debug.print("+", .{});
+                            v[i].dump(w, format);
+                            w.print("+", .{}) catch unreachable;
                         }
-                        v[len - 1].dump(format);
+                        v[len - 1].dump(w, format);
                     },
                 }
             },
@@ -56,15 +57,15 @@ pub const CommandAtom = union(enum) {
     LITTERAL: []const u8,
     VAL: []const u8,
 
-    pub fn dump(self: Self, format: Format) void {
+    pub fn dump(self: Self, w: anytype, format: Format) void {
         switch (self) {
             .LITTERAL => {
-                std.debug.print("{s}", .{self.LITTERAL});
+                w.print("{s}", .{self.LITTERAL}) catch unreachable;
             },
             .VAL => {
                 switch (format) {
                     .I3, .SWAY, .HYPERLAND => {
-                        std.debug.print("${s}", .{self.VAL});
+                        w.print("${s}", .{self.VAL}) catch unreachable;
                     },
                 }
             },
@@ -79,40 +80,40 @@ pub const Command = union(enum) {
     PIPE: struct { left: *Command, right: *Command },
     AND: struct { left: *Command, right: *Command },
 
-    pub fn dump(self: Self, format: Format) void {
+    pub fn dump(self: Self, w: anytype, format: Format) void {
         switch (activeTag(self)) {
             .CMD => {
                 switch (format) {
                     .I3, .SWAY, .HYPERLAND => {
                         const len = self.CMD.items.len;
                         for (0..len - 1) |i| {
-                            self.CMD.items[i].dump(format);
-                            std.debug.print(" ", .{});
+                            self.CMD.items[i].dump(w, format);
+                            w.print(" ", .{}) catch unreachable;
                         }
-                        self.CMD.items[len - 1].dump(format);
+                        self.CMD.items[len - 1].dump(w, format);
                     },
                 }
             },
             .PIPE => {
                 switch (format) {
                     .I3, .SWAY => {
-                        self.PIPE.left.dump(format);
-                        std.debug.print(" | ", .{});
-                        self.PIPE.right.dump(format);
+                        self.PIPE.left.dump(w, format);
+                        w.print(" | ", .{}) catch unreachable;
+                        self.PIPE.right.dump(w, format);
                     },
                     .HYPERLAND => {
-                        self.PIPE.left.dump(format);
-                        std.debug.print(" || ", .{});
-                        self.PIPE.right.dump(format);
+                        self.PIPE.left.dump(w, format);
+                        w.print(" || ", .{}) catch unreachable;
+                        self.PIPE.right.dump(w, format);
                     },
                 }
             },
             .AND => {
                 switch (format) {
                     .I3, .SWAY, .HYPERLAND => {
-                        self.AND.left.dump(format);
-                        std.debug.print(" && ", .{});
-                        self.AND.right.dump(format);
+                        self.AND.left.dump(w, format);
+                        w.print(" && ", .{}) catch unreachable;
+                        self.AND.right.dump(w, format);
                     },
                 }
             },
@@ -138,92 +139,91 @@ pub const Expr = union(enum) {
     },
     BLOCK: ArrayList(Expr),
 
-    // TODO! take a writer to be able to buffer it
-    pub fn dump(self: Self, format: Format) void {
-        self._dump(format, 0);
+    pub fn dump(self: Self, w: anytype, format: Format) void {
+        self._dump(w, format, 0);
     }
 
-    fn _dump(self: Self, format: Format, identation: usize) void {
+    fn _dump(self: Self, w: anytype, format: Format, identation: usize) void {
         switch (activeTag(self)) {
             .BIND => {
                 for (0..identation) |_| {
-                    std.debug.print("\t", .{});
+                    w.print("\t", .{}) catch unreachable;
                 }
                 switch (format) {
                     .I3, .SWAY => {
-                        std.debug.print("bindsym ", .{});
-                        self.BIND.to.dump(format);
-                        std.debug.print(" ", .{});
-                        self.BIND.value._dump(format, 0);
+                        w.print("bindsym ", .{}) catch unreachable;
+                        self.BIND.to.dump(w, format);
+                        w.print(" ", .{}) catch unreachable;
+                        self.BIND.value._dump(w, format, 0);
                     },
                     .HYPERLAND => {
-                        std.debug.print("bind = ", .{});
-                        self.BIND.to.dump(format);
-                        std.debug.print(", ", .{});
-                        self.BIND.value._dump(format, 0);
+                        w.print("bind = ", .{}) catch unreachable;
+                        self.BIND.to.dump(w, format);
+                        w.print(", ", .{}) catch unreachable;
+                        self.BIND.value._dump(w, format, 0);
                     },
                 }
             },
 
             .MODE => {
                 for (0..identation) |_| {
-                    std.debug.print("\t", .{});
+                    w.print("\t", .{}) catch unreachable;
                 }
                 switch (format) {
                     .I3, .SWAY => {
-                        std.debug.print("mode {s} {c}\n", .{ self.MODE.name, '{' });
-                        self.MODE.environment._dump(format, identation + 1);
+                        w.print("mode {s} {c}\n", .{ self.MODE.name, '{' }) catch unreachable;
+                        self.MODE.environment._dump(w, format, identation + 1);
                         for (0..identation) |_| {
-                            std.debug.print("\t", .{});
+                            w.print("\t", .{}) catch unreachable;
                         }
-                        std.debug.print("{c}\n", .{'}'});
+                        w.print("{c}\n", .{'}'}) catch unreachable;
                     },
                     .HYPERLAND => {
-                        std.debug.print("submap = {s}\n", .{self.MODE.name});
-                        self.MODE.environment._dump(format, identation + 1);
+                        w.print("submap = {s}\n", .{self.MODE.name}) catch unreachable;
+                        self.MODE.environment._dump(w, format, identation + 1);
                         for (0..identation) |_| {
-                            std.debug.print("\t", .{});
+                            w.print("\t", .{}) catch unreachable;
                         }
-                        std.debug.print("submap = reset\n", .{});
+                        w.print("submap = reset\n", .{}) catch unreachable;
                     },
                 }
             },
 
             .EXEC => {
                 for (0..identation) |_| {
-                    std.debug.print("\t", .{});
+                    w.print("\t", .{}) catch unreachable;
                 }
                 switch (format) {
                     .I3, .SWAY => {
-                        std.debug.print("exec ", .{});
-                        self.EXEC.dump(format);
-                        std.debug.print("\n", .{});
+                        w.print("exec ", .{}) catch unreachable;
+                        self.EXEC.dump(w, format);
+                        w.print("\n", .{}) catch unreachable;
                     },
                     .HYPERLAND => {
-                        std.debug.print("exec, ", .{});
-                        self.EXEC.dump(format);
-                        std.debug.print("\n", .{});
+                        w.print("exec, ", .{}) catch unreachable;
+                        self.EXEC.dump(w, format);
+                        w.print("\n", .{}) catch unreachable;
                     },
                 }
             },
 
             .SET => {
                 for (0..identation) |_| {
-                    std.debug.print("\t", .{});
+                    w.print("\t", .{}) catch unreachable;
                 }
                 switch (format) {
                     .I3, .SWAY => {
-                        std.debug.print("set ${s} {s}\n", .{ self.SET.to, self.SET.val });
+                        w.print("set ${s} {s}\n", .{ self.SET.to, self.SET.val }) catch unreachable;
                     },
                     .HYPERLAND => {
-                        std.debug.print("${s} = {s}\n", .{ self.SET.to, self.SET.val });
+                        w.print("${s} = {s}\n", .{ self.SET.to, self.SET.val }) catch unreachable;
                     },
                 }
             },
 
             .BLOCK => {
                 for (self.BLOCK.items) |e| {
-                    e._dump(format, identation);
+                    e._dump(w, format, identation);
                 }
             },
         }
