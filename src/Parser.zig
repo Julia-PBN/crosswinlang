@@ -161,7 +161,7 @@ fn parse_cmd_atom(self: *Self) CommandAtom {
     // only val possible now
     _ = self.lexer.next_assert(.LEFT_PAR);
     _ = self.lexer.next_assert(.VAL);
-    const atom = .{ .VAL = self.lexer.next_assert(.VAR).type.VAR };
+    const atom : CommandAtom = .{ .VAL = self.lexer.next_assert(.VAR).type.VAR };
 
     _ = self.lexer.next_assert(.RIGHT_PAR);
     return atom;

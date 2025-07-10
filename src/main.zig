@@ -19,10 +19,10 @@ pub fn main() !void {
     var arena = std.heap.ArenaAllocator.init(gpa.allocator());
     defer arena.deinit();
     const allocator = arena.allocator();
-    const args = try std.process.argsAlloc(allocator);
+    const args : [][:0]const u8 = @ptrCast(try std.process.argsAlloc(allocator));
     if (args.len != 3) {
         help(args);
-        std.os.exit(1);
+        std.process.exit(1);
     }
     const format_name = args[2];
     var format: Format = undefined;
@@ -35,7 +35,7 @@ pub fn main() !void {
     } else {
         log("Format {s} not recognised\n", .{args[2]});
         help(args);
-        std.os.exit(1);
+        std.process.exit(1);
     }
 
     var parser = Parser.init(args[1], allocator);

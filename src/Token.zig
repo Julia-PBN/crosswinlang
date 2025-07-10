@@ -16,7 +16,7 @@ pub const TokenType = union(enum) {
     EOF,
 };
 
-pub const TokenTypeEnum = @typeInfo(TokenType).Union.tag_type.?;
+pub const TokenTypeEnum = @typeInfo(TokenType).@"union".tag_type.?;
 
 pub const Token = struct {
     const Self = @This();
