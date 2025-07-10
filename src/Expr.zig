@@ -126,6 +126,7 @@ pub const Expr = union(enum) {
         to: Key,
         value: *Expr,
     },
+    SWITCH: []const u8,
     MODE: struct {
         name: []const u8,
         environment: *Expr, // TODO! assert that it is a BLOCK varient
@@ -169,7 +170,7 @@ pub const Expr = union(enum) {
                 }
                 switch (format) {
                     .I3, .SWAY => {
-                        w.print("mode {s} {c}\n", .{ e.name, '{' }) catch unreachable;
+                        w.print("mode \"{s}\" {c}\n", .{ e.name, '{' }) catch unreachable;
                         self.MODE.environment._dump(w, format, identation + 1);
                         for (0..identation) |_| {
                             w.print("\t", .{}) catch unreachable;
@@ -218,7 +219,20 @@ pub const Expr = union(enum) {
                     },
                 }
             },
-
+            .SWITCH => {
+                const to = self.SWITCH;
+                for (0..identation) |_| {
+                    w.print("\t", .{}) catch unreachable;
+                }
+                switch (format) {
+                    .I3, .SWAY => {
+                        w.print("mode \"{s}\"\n", .{to}) catch unreachable;
+                    },
+                    .HYPERLAND => {
+                        w.print("submap, {s}\n", .{to}) catch unreachable;
+                    },
+                }
+            },
             .BLOCK => {
                 for (self.BLOCK.items) |e| {
                     e._dump(w, format, identation);

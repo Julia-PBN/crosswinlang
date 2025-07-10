@@ -4,6 +4,7 @@ const activeTag = @import("std").meta.activeTag;
 pub const TokenType = union(enum) {
     BIND,
     MODE,
+    SWITCH,
     EXEC,
     SET,
     VAL,

@@ -118,6 +118,8 @@ pub fn next(self: *Self) void {
                 self.current = Token.init(TokenType.MODE, pos);
             } else if (memeql(u8, s, "bind")) {
                 self.current = Token.init(TokenType.BIND, pos);
+            } else if (memeql(u8, s, "switch")) {
+                self.current = Token.init(TokenType.SWITCH, pos);
             } else if (memeql(u8, s, "exec")) {
                 self.current = Token.init(TokenType.EXEC, pos);
             } else if (memeql(u8, s, "set")) {

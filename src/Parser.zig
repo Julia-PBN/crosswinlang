@@ -67,6 +67,11 @@ fn parse_expr(self: *Self) Expr {
             _ = self.lexer.next_assert(.RIGHT_PAR);
             return expr;
         },
+        .SWITCH => {
+            const expr = self.parse_switch();
+            _ = self.lexer.next_assert(.RIGHT_PAR);
+            return expr;
+        },
 
         else => unreachable,
     }
@@ -200,6 +205,7 @@ fn parse_pipe_cmd(self: *Self) Command {
 
     return .{ .PIPE = .{ .left = left, .right = right } };
 }
+
 fn parse_set(self: *Self) Expr {
     _ = self.lexer.next_assert(.SET);
     const to = self.lexer.next_assert(.VAR).type.VAR;
@@ -211,4 +217,10 @@ fn parse_val(self: *Self) Expr {
     _ = self.lexer.next_assert(.VAL);
     const @"var" = self.lexer.next_assert(.VAR).type.VAR;
     return .{ .VAL = @"var" };
+}
+
+fn parse_switch(self: *Self) Expr {
+    _ = self.lexer.next_assert(.SWITCH);
+    const @"var" = self.lexer.next_assert(.VAR).type.VAR;
+    return .{ .SWITCH = @"var" };
 }

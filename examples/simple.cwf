@@ -12,3 +12,5 @@
   (pipe (cmd echo /dev/unrandom) 
         (pipe (cmd head -n 10) (cmd cat))) 
   (cmd echo "that was \"unlikely\"  ")))
+
+(bind (and (val mod) d) (switch default))

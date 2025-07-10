@@ -5,6 +5,7 @@ support for `mode`, `bind`, `set` and `exec`
 # syntax
 
 put expression in a mode: `(mode mode_name expression expression ...)`
+switch to a mode: `(switch mode_name)`
 bind symbol to expression: `(bind key expression)`
 set symbol to value: `(set key value)`
 exec command: `(exec command)` (for example `(exec ls -lh)`)
@@ -23,8 +24,9 @@ The EBNF:
 ```
 PROGRAM = BLOCK
 BLOCK = EXPR*
-EXPR = MODE | BIND | SET | EXEC
+EXPR = MODE | BIND | SET | EXEC | SWITCH
 MODE = '(' "mode" VAR BLOCK ')'
+SWITCH = '(' "switch" VAR ')'
 BIND = '(' "bind" KEY EXEC ')'
 SET = '(' "set" VAR (VAR|VAL) ')'
 EXEC = '(' "exec" COMMAND ')'
@@ -39,7 +41,3 @@ AND_COMMAND = '(' "and" COMMAND COMMAND ')'
 CMD = '(' "cmd" CMD_ATOM+ ')'
 CMD_ATOM = VAR | VAL
 ```
-
-# TODO
-
-add command to switch to a new mode, will probably be `(switch mode)`
